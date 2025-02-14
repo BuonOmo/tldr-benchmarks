@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: "${{ github.workflow }}@${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
   mac_bench:
     runs-on: macos-latest
@@ -20,38 +24,34 @@ jobs:
         run: |
           brew install --skip-link --no-binaries --force --quiet tealdeer
           ln -s $(brew --prefix)/Cellar/tealdeer/*/bin/tldr ./tealdeer
-          echo "TEALDEER_CACHE_DIR:tealdeer" >> command_list
+          echo "TEALDEER_CACHE_DIR,tealdeer" >> command_list.csv
       - name: Install `tlrc` (https://github.com/tldr-pages/tlrc)
         run: |
           brew install --skip-link --no-binaries --force --quiet tlrc
           ln -s $(brew --prefix)/Cellar/tlrc/*/bin/tldr ./tlrc
-          echo "TLDR_CACHE_DIR:tlrc" >> command_list
+          echo "TLDR_CACHE_DIR,tlrc" >> command_list.csv
       - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
         run: |
           curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
-          echo "XDG_DATA_HOME:tldr-bash" >> command_list
+          echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
       - name: Install `tldr-c-client` (https://github.com/tldr-pages/tldr-c-client)
         run: |
           brew install --skip-link --no-binaries --force --quiet tldr
           ln -s $(brew --prefix)/Cellar/tldr/*/bin/tldr ./tldr-c-client
-          echo "TLDR_CACHE_DIR:tldr-c-client" >> command_list
+          echo "TLDR_CACHE_DIR,tldr-c-client" >> command_list.csv
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow != 1 }}
         run: |
           npm install -g tldr
-          which tldr
           ln -s $(realpath $(which tldr)) ./tldr-node-client
-          ls -l $(which tldr)
           rm -f $(which tldr)
-          ls -l
-          which tldr || echo "tldr not found"
-          echo "HOME:tldr-node-client" >> command_list
+          echo "HOME,tldr-node-client" >> command_list.csv
       - name: Install `tldr-python-client` (https://github.com/tldr-pages/tldr-python-client)
         run: |
           pip install tldr
           mv $(which tldr) ./tldr-python-client
-          echo "HOME:tldr-python-client" >> command_list
+          echo "HOME,tldr-python-client" >> command_list.csv
       - name: Install `fast-tldr` (https://github.com/gutjuri/fast-tldr)
         if: ${{ env.skip_slow != 1 }}
         run: |
@@ -61,7 +61,7 @@ jobs:
           stack install --local-bin-path . > /dev/null
           mv tldr ../fast-tldr
           cd ..
-          echo "XDG_DATA_HOME:fast-tldr" >> command_list
+          echo "XDG_DATA_HOME,fast-tldr" >> command_list.csv
       - name: Install `outfieldr` (https://gitlab.com/ve-nt/outfieldr)
         if: false # outfieldr depends on zig 0.9.1 which is broken on Mac M* chips.
         run: |
@@ -73,22 +73,22 @@ jobs:
           ./zig-macos-aarch64-0.9.1/zig build -Drelease-safe
           cd ..
           cp outfieldr-repo/bin/tldr ./outfieldr
-          echo "HOME:outfieldr" >> command_list
+          echo "HOME,outfieldr" >> command_list.csv
       - name: Update caches and run benchmark
         if: always()
         run: |
           echo "Commands to benchmark:"
-          cat command_list
+          cat command_list.csv
           echo
           benchmarks=()
-          while IFS=: read env cmd; do
+          while IFS=, read env cmd; do
             mkdir -p ./caches/$cmd
             sync && sudo purge
-            timing_s=$({ time bash -c "$env=./caches/$cmd ./$cmd -u"; } 2>&1 | awk '/real/ {print $2}')
-            echo "Updating cache for $cmd in $timing_s"
-            echo "$cmd:$timing_s" >> update_times
+            timing_s=$({ time bash -c "$env=./caches/$cmd ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
+            echo "Updating cache for $cmd in $timing_s."
+            echo "$cmd,$timing_s" >> update_times.csv
             benchmarks+=("$env=./caches/$cmd ./$cmd tar")
-          done < command_list
+          done < command_list.csv
           hyperfine \
             --warmup 10 \
             --prepare 'sync && sudo purge' \
@@ -96,11 +96,31 @@ jobs:
             "${benchmarks[@]}"
           mkdir export
           mv hyperfine.json export/
-          mv update_times export/
-          mv command_list export/
+          mv update_times.csv export/
       - name: Upload test information
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: stuff
+          name: mac_bench_results
           path: export/*
+  generate_readme:
+    runs-on: ubuntu-latest
+    needs: mac_bench
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download test information
+        uses: actions/download-artifact@v4
+        with:
+          name: mac_bench_results
+      - name: Generate README
+        run: ruby generate_readme.rb hyperfine.json update_times.csv
+      - uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
+        with:
+          add: README.md
+          author_name: Ulysse Buonomo
+          author_email: buonomo.ulysse@gmail.com
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          message: "auto: update benchmarks"
