@@ -12,6 +12,7 @@ jobs:
     env:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
+      skip_slow: 1
     steps:
       - name: Install dependencies
         run: brew update --quiet && brew install --quiet hyperfine
@@ -36,6 +37,7 @@ jobs:
           ln -s $(brew --prefix)/Cellar/tldr/*/bin/tldr ./tldr-c-client
           echo "TLDR_CACHE_DIR:tldr-c-client" >> command_list
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
+        if: ${{ env.skip_slow != 1 }}
         run: |
           npm install -g tldr
           which tldr
@@ -51,6 +53,7 @@ jobs:
           mv $(which tldr) ./tldr-python-client
           echo "HOME:tldr-python-client" >> command_list
       - name: Install `fast-tldr` (https://github.com/gutjuri/fast-tldr)
+        if: ${{ env.skip_slow != 1 }}
         run: |
           curl -sSL https://get.haskellstack.org/ | sh
           git clone --quiet --depth 1 https://github.com/gutjuri/fast-tldr.git fast-tldr-repo
@@ -80,13 +83,24 @@ jobs:
           benchmarks=()
           while IFS=: read env cmd; do
             mkdir -p ./caches/$cmd
-            echo "Updating cache for $cmd"
             sync && sudo purge
-            time bash -c "$env=./caches/$cmd ./$cmd -u"
+            timing_s=$({ time bash -c "$env=./caches/$cmd ./$cmd -u"; } 2>&1 | awk '/real/ {print $2}')
+            echo "Updating cache for $cmd in $timing_s"
+            echo "$cmd:$timing_s" >> update_times
             benchmarks+=("$env=./caches/$cmd ./$cmd tar")
           done < command_list
           hyperfine \
             --warmup 10 \
-            --runs 50 \
             --prepare 'sync && sudo purge' \
+            --export-json hyperfine.json \
             "${benchmarks[@]}"
+          mkdir export
+          mv hyperfine.json export/
+          mv update_times export/
+          mv command_list export/
+      - name: Upload test information
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stuff
+          path: export/*
