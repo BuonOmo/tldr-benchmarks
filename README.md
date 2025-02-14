@@ -7,17 +7,21 @@ choose an implementation based on both performance and simplicity.
 
 ## For Mac OS X
 
-| Client                                                                 | Language   | Mean (ms) | Deviation (ms) | Time to update cache | Easy to install |
-| ---------------------------------------------------------------------- | ---------- | --------- | -------------- | -------------------- | --------------- |
-| [tldr-c-client](https://github.com/tldr-pages/tldr-c-client)           | C          | 135.1     | 41.2           | 00:05.7              | yes             |
-| [tlrc](https://github.com/tldr-pages/tlrc)                             | Rust       | 143.9     | 41.5           | 00:02.873            | yes             |
-| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 165.4     | 71.1           | 00:05.20             | yes             |
-| [fast-tldr](https://github.com/gutjuri/fast-tldr)                      | Haskell    | 255.6     | 283.6          | 00:05.537            | no              |
-| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 293.7     | 68.6           | 00:05.745            | yes             |
-| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 376.5     | 146.0          | 00:02.250            | needs pip       |
-| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 917.2     | 526.6          | 01:47.386            | needs npm       |
+| Client                                                                 | Language   | Mean (ms) | Deviation (ms) | Time to Update Cache | Comment      |
+| ---------------------------------------------------------------------- | ---------- | --------- | -------------- | -------------------- | ------------ |
+| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 139.6     | 48.9           | 00:05.554            | on brew      |
+| [tlrc](https://github.com/tldr-pages/tlrc)                             | Rust       | 140.6     | 46.3           | 00:03.111            | on brew      |
+| [fast-tldr](https://github.com/gutjuri/fast-tldr)                      | Haskell    | 141.8     | 68.2           | 00:04.587            | not packaged |
+| [tldr-c-client](https://github.com/tldr-pages/tldr-c-client)           | C          | 152.5     | 40.6           | 00:04.359            | on brew      |
+| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 269.7     | 44.0           | 00:02.144            | needs pip    |
+| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 314.1     | 64.4           | 00:05.861            | single file  |
+| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 530.0     | 106.3          | 01:42.680            | needs npm    |
 
 
 ## For Ubuntu
 
-Coming soon...
+| Client                                              | Language | Mean (ms) | Deviation (ms) | Time to Update Cache | Comment     |
+| --------------------------------------------------- | -------- | --------- | -------------- | -------------------- | ----------- |
+| [tealdeer](https://github.com/tealdeer-rs/tealdeer) | Rust     | 18.2      | 2.4            | 00:01.426            | on apt      |
+| [tldr-bash](https://github.com/ewels/tldr-bash)     | BASH     | 78.2      | 0.7            | 00:01.686            | single file |
+
