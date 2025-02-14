@@ -7,12 +7,12 @@ require 'erb'
 require 'json'
 require 'stringio'
 
-def generate_table(hyperfine_output_path, information_path, update_times_path, stream = $stdout)
+def generate_table(hyperfine_output_path, information_path, update_times_path, stream = $stdout, extra_rows = [])
 	results = JSON.load_file(hyperfine_output_path)['results']
 	info = CSV.read(information_path, col_sep: "\t", headers: true).to_h { [_1['command'], _1] }
 	update_times = CSV.read(update_times_path).to_h
 
-	headers = ["Client","Language", "Mean (ms)", "Deviation (ms)", "Time to update cache", "Easy to install"]
+	headers = ["Client","Language", "Mean (ms)", "Deviation (ms)", "Time to Update Cache", *extra_rows.map(&:first)]
 
 	rows = results.map do |result|
 		command = result['command'][%r( \./(.*) tar), 1]
@@ -25,7 +25,7 @@ def generate_table(hyperfine_output_path, information_path, update_times_path, s
 			(result['mean'] * 1_000).round(1),
 			(result['stddev'] * 1_000).round(1),
 			update_time,
-			info_row['easy to install on mac'],
+			*extra_rows.map { _2.call(command, result, info_row, update_time) },
 		]
 	end
 
@@ -38,9 +38,18 @@ def generate_table(hyperfine_output_path, information_path, update_times_path, s
 		stream.puts "| #{row.zip(col_widths).map { _1.to_s.ljust(_2, ' ') }.join(' | ')} |"
 	end
 end
-str = StringIO.new
-generate_table(ARGV[0], 'information.tsv', ARGV[1], str)
-mac_table = str.string
+
+io = StringIO.new
+generate_table(ARGV[0], 'information.tsv', ARGV[1], io, [
+	["Comment", ->(_, _, info, _) { info['comment mac'] }]
+])
+mac_table = io.string
+
+io = StringIO.new
+generate_table(ARGV[2], 'information.tsv', ARGV[3], io, [
+	["Comment", ->(_, _, info, _) { info['comment ubuntu'] }]
+])
+ubuntu_table = io.string
 
 File.write('README.md', ERB.new(DATA.read).result(binding))
 
@@ -58,4 +67,4 @@ choose an implementation based on both performance and simplicity.
 
 ## For Ubuntu
 
-Coming soon...
+<%= ubuntu_table %>

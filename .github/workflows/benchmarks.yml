@@ -75,7 +75,7 @@ jobs:
           cp outfieldr-repo/bin/tldr ./outfieldr
           echo "HOME,outfieldr" >> command_list.csv
       - name: Update caches and run benchmark
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           echo "Commands to benchmark:"
           cat command_list.csv
@@ -99,13 +99,81 @@ jobs:
           mv update_times.csv export/
       - name: Upload test information
         uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ !cancelled() }}
         with:
           name: mac_bench_results
           path: export/*
+  ubuntu_bench:
+    runs-on: ubuntu-latest
+    env:
+      skip_slow: 1
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
+      - name: Install `tldr-hs` (https://github.com/psibi/tldr-hs)
+        if: false # TODO
+        run: |
+          sudo apt-get install -yqq tldr-hs
+          sudo mv $(which tldr) ./tldr-hs
+          echo "XDG_DATA_HOME,tldr-hs" >> command_list.csv
+      - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
+        run: |
+          sudo apt-get install -yqq tealdeer
+          sudo mv $(which tldr) ./tealdeer
+          echo "TEALDEER_CACHE_DIR,tealdeer" >> command_list.csv
+      - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
+        run: |
+          curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
+          chmod +x ./tldr-bash
+          echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
+      - name: Install `tldr-c-client` (https://github.com/tldr-pages/tldr-c-client)
+        run: |
+          echo TODO
+      - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
+        if: ${{ env.skip_slow != 1 }}
+        run: |
+          npm install -g tldr
+          ln -s $(realpath $(which tldr)) ./tldr-node-client
+          sudo rm -f $(which tldr)
+          echo "HOME,tldr-node-client" >> command_list.csv
+      - name: Install `tldr-python-client` (https://github.com/tldr-pages/tldr-python-client)
+        run: |
+          echo TODO
+          # pip install tldr
+          # sudo mv $(which tldr) ./tldr-python-client
+          # echo "HOME,tldr-python-client" >> command_list.csv
+      - name: Update caches and run benchmark
+        if: ${{ !cancelled() }}
+        run: |
+          echo "Commands to benchmark:"
+          cat command_list.csv
+          echo
+          benchmarks=()
+          while IFS=, read env cmd; do
+            mkdir -p ./caches/$cmd
+            sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
+            timing_s=$({ time bash -c "$env=./caches/$cmd ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
+            echo "Updating cache for $cmd in $timing_s."
+            echo "$cmd,$timing_s" >> update_times.csv
+            benchmarks+=("$env=./caches/$cmd ./$cmd tar")
+          done < command_list.csv
+          hyperfine \
+            --warmup 10 \
+            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches' \
+            --export-json hyperfine.json \
+            "${benchmarks[@]}"
+          mkdir export
+          mv hyperfine.json export/
+          mv update_times.csv export/
+      - name: Upload test information
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: ubuntu_bench_results
+          path: export/*
   generate_readme:
     runs-on: ubuntu-latest
-    needs: mac_bench
+    needs: [mac_bench, ubuntu_bench]
     permissions:
       contents: write
     steps:
@@ -114,8 +182,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mac_bench_results
+          path: mac
+      - name: Download test information
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu_bench_results
+          path: ubuntu
       - name: Generate README
-        run: ruby generate_readme.rb hyperfine.json update_times.csv
+        run: ruby generate_readme.rb mac/hyperfine.json mac/update_times.csv ubuntu/hyperfine.json ubuntu/update_times.csv
       - uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
         with:
           add: README.md
