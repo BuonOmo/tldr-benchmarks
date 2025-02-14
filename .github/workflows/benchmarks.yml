@@ -16,7 +16,7 @@ jobs:
     env:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
-      skip_slow: 1
+      # skip_slow: 1
     steps:
       - name: Install dependencies
         run: brew update --quiet && brew install --quiet hyperfine
