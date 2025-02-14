@@ -1,0 +1,92 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  mac_bench:
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTOREMOVE: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    steps:
+      - name: Install dependencies
+        run: brew update --quiet && brew install --quiet hyperfine
+      - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
+        run: |
+          brew install --skip-link --no-binaries --force --quiet tealdeer
+          ln -s $(brew --prefix)/Cellar/tealdeer/*/bin/tldr ./tealdeer
+          echo "TEALDEER_CACHE_DIR:tealdeer" >> command_list
+      - name: Install `tlrc` (https://github.com/tldr-pages/tlrc)
+        run: |
+          brew install --skip-link --no-binaries --force --quiet tlrc
+          ln -s $(brew --prefix)/Cellar/tlrc/*/bin/tldr ./tlrc
+          echo "TLDR_CACHE_DIR:tlrc" >> command_list
+      - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
+        run: |
+          curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
+          chmod +x ./tldr-bash
+          echo "XDG_DATA_HOME:tldr-bash" >> command_list
+      - name: Install `tldr-c-client` (https://github.com/tldr-pages/tldr-c-client)
+        run: |
+          brew install --skip-link --no-binaries --force --quiet tldr
+          ln -s $(brew --prefix)/Cellar/tldr/*/bin/tldr ./tldr-c-client
+          echo "TLDR_CACHE_DIR:tldr-c-client" >> command_list
+      - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
+        run: |
+          npm install -g tldr
+          which tldr
+          ln -s $(realpath $(which tldr)) ./tldr-node-client
+          ls -l $(which tldr)
+          rm -f $(which tldr)
+          ls -l
+          which tldr || echo "tldr not found"
+          echo "HOME:tldr-node-client" >> command_list
+      - name: Install `tldr-python-client` (https://github.com/tldr-pages/tldr-python-client)
+        run: |
+          pip install tldr
+          mv $(which tldr) ./tldr-python-client
+          echo "HOME:tldr-python-client" >> command_list
+      - name: Install `fast-tldr` (https://github.com/gutjuri/fast-tldr)
+        run: |
+          curl -sSL https://get.haskellstack.org/ | sh
+          git clone --quiet --depth 1 https://github.com/gutjuri/fast-tldr.git fast-tldr-repo
+          cd fast-tldr-repo
+          stack install --local-bin-path . > /dev/null
+          mv tldr ../fast-tldr
+          cd ..
+          echo "XDG_DATA_HOME:fast-tldr" >> command_list
+      - name: Install `outfieldr` (https://gitlab.com/ve-nt/outfieldr)
+        if: false # outfieldr depends on zig 0.9.1 which is broken on Mac M* chips.
+        run: |
+          git clone --quiet --depth 1 https://gitlab.com/ve-nt/outfieldr outfieldr-repo
+          cd outfieldr-repo
+          git submodule update --init
+          wget --quiet https://ziglang.org/download/0.9.1/zig-macos-aarch64-0.9.1.tar.xz
+          tar -xf zig-macos-aarch64-0.9.1.tar.xz
+          ./zig-macos-aarch64-0.9.1/zig build -Drelease-safe
+          cd ..
+          cp outfieldr-repo/bin/tldr ./outfieldr
+          echo "HOME:outfieldr" >> command_list
+      - name: Update caches and run benchmark
+        if: always()
+        run: |
+          echo "Commands to benchmark:"
+          cat command_list
+          echo
+          benchmarks=()
+          while IFS=: read env cmd; do
+            mkdir -p ./caches/$cmd
+            echo "Updating cache for $cmd"
+            sync && sudo purge
+            time bash -c "$env=./caches/$cmd ./$cmd -u"
+            benchmarks+=("$env=./caches/$cmd ./$cmd tar")
+          done < command_list
+          hyperfine \
+            --warmup 10 \
+            --runs 50 \
+            --prepare 'sync && sudo purge' \
+            "${benchmarks[@]}"
