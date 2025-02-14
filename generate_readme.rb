@@ -7,12 +7,30 @@ require 'erb'
 require 'json'
 require 'stringio'
 
+def last_commit_time(git_link)
+	@last_commit_times ||= {}
+	return @last_commit_times[git_link] if @last_commit_times[git_link]
+
+	temp_folder = 'tldr-benchmarks-temp'
+
+	commit_time =
+		`
+		git clone --quiet #{git_link} #{temp_folder}
+		cd #{temp_folder}
+		git log -1 --pretty=format:"%ar"
+		cd ..
+		rm -rf #{temp_folder}
+		`.chomp
+
+	@last_commit_times[git_link] = commit_time
+end
+
 def generate_table(hyperfine_output_path, information_path, update_times_path, stream = $stdout, extra_rows = [])
 	results = JSON.load_file(hyperfine_output_path)['results']
 	info = CSV.read(information_path, col_sep: "\t", headers: true).to_h { [_1['command'], _1] }
 	update_times = CSV.read(update_times_path).to_h
 
-	headers = ["Client","Language", "Mean (ms)", "Deviation (ms)", "Time to Update Cache", *extra_rows.map(&:first)]
+	headers = ["Client","Language", "Mean (ms)", "Deviation (ms)", "Time to Update Cache", "Last Commit", *extra_rows.map(&:first)]
 
 	rows = results.map do |result|
 		command = result['command'][%r( \./(.*) tar), 1]
@@ -25,6 +43,7 @@ def generate_table(hyperfine_output_path, information_path, update_times_path, s
 			(result['mean'] * 1_000).round(1),
 			(result['stddev'] * 1_000).round(1),
 			update_time,
+			last_commit_time(info_row['git link']),
 			*extra_rows.map { _2.call(command, result, info_row, update_time) },
 		]
 	end
@@ -59,7 +78,8 @@ __END__
 A collection of benchmarks for the various TLDR implementations.
 
 These benchmarks aim to provide a comparison for one who wants to
-choose an implementation based on both performance and simplicity.
+choose an implementation based on overall performance, installation
+time and project maintenance.
 
 ## For Mac OS X
 
