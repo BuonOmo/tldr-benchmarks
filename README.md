@@ -8,21 +8,21 @@ time and project maintenance.
 
 ## For Mac OS X
 
-| Client                                                                 | Language   | Mean (ms) | Deviation (ms) | Time to Update Cache | Last Commit         | Comment      |
-| ---------------------------------------------------------------------- | ---------- | --------- | -------------- | -------------------- | ------------------- | ------------ |
-| [fast-tldr](https://github.com/gutjuri/fast-tldr)                      | Haskell    | 145.4     | 59.5           | 00:05.558            | 1 year, 1 month ago | not packaged |
-| [tldr-c-client](https://github.com/tldr-pages/tldr-c-client)           | C          | 160.7     | 60.2           | 00:05.400            | 4 months ago        | on brew      |
-| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 166.9     | 94.1           | 00:06.691            | 5 weeks ago         | on brew      |
-| [tlrc](https://github.com/tldr-pages/tlrc)                             | Rust       | 196.3     | 53.9           | 00:03.41             | 6 days ago          | on brew      |
-| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 283.0     | 60.9           | 00:02.492            | 4 months ago        | needs pip    |
-| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 359.6     | 74.4           | 00:07.382            | 6 years ago         | single file  |
-| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 673.8     | 185.0          | 02:03.361            | 3 weeks ago         | needs npm    |
+| Client                                                                 | Language   | Time to show `tar` page (mean ± σ) | Time to Generate Cache | Time to check for cache update (mean ± σ) | Last Commit         | Comment      |
+| ---------------------------------------------------------------------- | ---------- | ---------------------------------- | ---------------------- | ----------------------------------------- | ------------------- | ------------ |
+| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 152.0 ms ± 53.4                    | 00:05.45               | 5462.7 ms ± 381.2                         | 5 weeks ago         | on brew      |
+| [fast-tldr](https://github.com/gutjuri/fast-tldr)                      | Haskell    | 171.1 ms ± 57.0                    | 00:06.971              | 5023.3 ms ± 578.5                         | 1 year, 1 month ago | not packaged |
+| [tlrc](https://github.com/tldr-pages/tlrc)                             | Rust       | 206.6 ms ± 228.4                   | 00:02.872              | 658.4 ms ± 69.8                           | 2 days ago          | on brew      |
+| [tldr-c-client](https://github.com/tldr-pages/tldr-c-client)           | C          | 234.6 ms ± 119.0                   | 00:04.44               | 3726.2 ms ± 375.7                         | 4 months ago        | on brew      |
+| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 238.4 ms ± 35.8                    | 00:05.337              | 825.4 ms ± 182.0                          | 6 years ago         | single file  |
+| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 300.9 ms ± 50.4                    | 00:02.771              | 1423.0 ms ± 127.5                         | 4 months ago        | needs pip    |
+| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 966.0 ms ± 414.1                   | 02:01.11               | 96950.0 ms ± 4431.6                       | 3 weeks ago         | needs npm    |
 
 
 ## For Ubuntu
 
-| Client                                              | Language | Mean (ms) | Deviation (ms) | Time to Update Cache | Last Commit | Comment     |
-| --------------------------------------------------- | -------- | --------- | -------------- | -------------------- | ----------- | ----------- |
-| [tealdeer](https://github.com/tealdeer-rs/tealdeer) | Rust     | 20.6      | 2.9            | 00:01.530            | 5 weeks ago | on apt      |
-| [tldr-bash](https://github.com/ewels/tldr-bash)     | BASH     | 80.2      | 2.6            | 00:01.878            | 6 years ago | single file |
+| Client                                              | Language | Time to show `tar` page (mean ± σ) | Time to Generate Cache | Time to check for cache update (mean ± σ) | Last Commit | Comment     |
+| --------------------------------------------------- | -------- | ---------------------------------- | ---------------------- | ----------------------------------------- | ----------- | ----------- |
+| [tealdeer](https://github.com/tealdeer-rs/tealdeer) | Rust     | 18.0 ms ± 1.3                      | 00:01.404              | 1939.0 ms ± 8.9                           | 5 weeks ago | on apt      |
+| [tldr-bash](https://github.com/ewels/tldr-bash)     | BASH     | 78.5 ms ± 2.7                      | 00:02.13               | 603.0 ms ± 10.6                           | 6 years ago | single file |
 
