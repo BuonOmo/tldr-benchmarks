@@ -10,13 +10,15 @@ concurrency:
   group: "${{ github.workflow }}@${{ github.ref }}"
   cancel-in-progress: true
 
+env:
+  skip_slow: 1
+
 jobs:
   mac_bench:
     runs-on: macos-latest
     env:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
-      # skip_slow: 1
     steps:
       - name: Install dependencies
         run: brew update --quiet && brew install --quiet hyperfine
@@ -113,16 +115,14 @@ jobs:
           path: export/*
   ubuntu_bench:
     runs-on: ubuntu-latest
-    env:
-      skip_slow: 1
     steps:
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
       - name: Install `tldr-hs` (https://github.com/psibi/tldr-hs)
-        if: false # TODO
         run: |
           sudo apt-get install -yqq tldr-hs
-          sudo mv $(which tldr) ./tldr-hs
+          ln -s $(realpath $(which tldr)) ./tldr-hs
+          sudo rm -f $(which tldr)
           echo "XDG_DATA_HOME,tldr-hs" >> command_list.csv
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
         run: |
@@ -134,9 +134,6 @@ jobs:
           curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
           echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
-      - name: Install `tldr-c-client` (https://github.com/tldr-pages/tldr-c-client)
-        run: |
-          echo TODO
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow != 1 }}
         run: |
@@ -146,10 +143,9 @@ jobs:
           echo "HOME,tldr-node-client" >> command_list.csv
       - name: Install `tldr-python-client` (https://github.com/tldr-pages/tldr-python-client)
         run: |
-          echo TODO
-          # pip install tldr
-          # sudo mv $(which tldr) ./tldr-python-client
-          # echo "HOME,tldr-python-client" >> command_list.csv
+          sudo pip install tldr
+          sudo mv $(which tldr) ./tldr-python-client
+          echo "HOME,tldr-python-client" >> command_list.csv
       - name: Update caches and run benchmark
         if: ${{ !cancelled() }}
         run: |
@@ -168,6 +164,7 @@ jobs:
             benchmarks_update+=("$env=./caches/$cmd ./$cmd --update")
           done < command_list.csv
           hyperfine \
+            --show-output \
             --warmup 10 \
             --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches' \
             --export-json hyperfine_tar.json \
