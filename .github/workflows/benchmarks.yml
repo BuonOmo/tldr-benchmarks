@@ -30,6 +30,7 @@ jobs:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: brew update --quiet && brew install --quiet hyperfine
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
@@ -83,37 +84,7 @@ jobs:
           echo "HOME,outfieldr" >> command_list.csv
       - name: Update caches and run benchmark
         if: ${{ !cancelled() }}
-        run: |
-          echo "Commands to benchmark:"
-          echo
-          column -ts , < command_list.csv
-          echo
-          benchmarks_tar=()
-          benchmarks_update=()
-          while IFS=, read env cmd; do
-            cache_path="$PWD/caches/$cmd"
-            mkdir -p $cache_path
-            sync && sudo purge
-            timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
-            echo "Updating cache for $cmd in $timing_s."
-            echo "$cmd,$timing_s" >> update_times.csv
-            benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
-            benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
-          done < command_list.csv
-          hyperfine \
-            --warmup 10 \
-            --prepare 'sync && sudo purge' \
-            --export-json hyperfine_tar.json \
-            "${benchmarks_tar[@]}"
-          hyperfine \
-            --warmup 10 \
-            --prepare 'sync && sudo purge' \
-            --export-json hyperfine_update.json \
-            "${benchmarks_update[@]}"
-          mkdir export
-          mv hyperfine_tar.json export/
-          mv hyperfine_update.json export/
-          mv update_times.csv export/
+        run: ./scripts/run_benchmarks 'sync && sudo purge'
       - name: Upload test information
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -123,6 +94,7 @@ jobs:
   ubuntu_bench:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
       - name: Install `tldr-hs` (https://github.com/psibi/tldr-hs)
@@ -155,37 +127,7 @@ jobs:
           echo "HOME,tldr-python-client" >> command_list.csv
       - name: Update caches and run benchmark
         if: ${{ !cancelled() }}
-        run: |
-          echo "Commands to benchmark:"
-          echo
-          column -ts , < command_list.csv
-          echo
-          benchmarks_tar=()
-          benchmarks_update=()
-          while IFS=, read env cmd; do
-            cache_path="$PWD/caches/$cmd"
-            mkdir -p "$cache_path"
-            sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
-            timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
-            echo "Updating cache for $cmd in $timing_s."
-            echo "$cmd,$timing_s" >> update_times.csv
-            benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
-            benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
-          done < command_list.csv
-          hyperfine \
-            --warmup 10 \
-            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null' \
-            --export-json hyperfine_tar.json \
-            "${benchmarks_tar[@]}"
-          hyperfine \
-            --warmup 10 \
-            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null' \
-            --export-json hyperfine_update.json \
-            "${benchmarks_update[@]}"
-          mkdir export
-          mv hyperfine_tar.json export/
-          mv hyperfine_update.json export/
-          mv update_times.csv export/
+        run: ./scripts/run_benchmarks 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
       - name: Upload test information
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
