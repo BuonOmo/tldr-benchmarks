@@ -8,16 +8,9 @@ on:
       - main
   schedule:
     - cron: '12 13 * * 1' # Weekly on Mondays at 13:12 UTC
-  workflow_dispatch:
-    inputs:
-      skip_slow:
-        type: boolean
-        description: 'Skip slow benchmarks or setups (tldr-node-client, fast-tldr, outfieldr)'
-        required: false
-        default: false
 
 env:
-  skip_slow: ${{ !inputs.skip_slow && 0 || github.ref == 'refs/heads/main' && 0 || 1 }}
+  skip_slow: ${{ github.ref != 'refs/heads/main' }}
 
 concurrency:
   group: '${{ github.workflow }}@${{ github.ref }}'
@@ -30,6 +23,9 @@ jobs:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
+      - name: Run information
+        run: |
+          echo skip_slow=${{ env.skip_slow }}
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: brew update --quiet && brew install --quiet hyperfine
@@ -49,7 +45,7 @@ jobs:
           chmod +x ./tldr-bash
           echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
-        if: ${{ env.skip_slow != 1 }}
+        if: ${{ env.skip_slow == 'false' }}
         run: |
           npm install -g tldr
           ln -s $(realpath $(which tldr)) ./tldr-node-client
@@ -61,7 +57,7 @@ jobs:
           mv $(which tldr) ./tldr-python-client
           echo "HOME,tldr-python-client" >> command_list.csv
       - name: Install `fast-tldr` (https://github.com/gutjuri/fast-tldr)
-        if: ${{ env.skip_slow != 1 }}
+        if: ${{ env.skip_slow == 'false' }}
         run: |
           curl -sSL https://get.haskellstack.org/ | sh
           git clone --quiet --depth 1 https://github.com/gutjuri/fast-tldr.git fast-tldr-repo
@@ -94,6 +90,9 @@ jobs:
   ubuntu_bench:
     runs-on: ubuntu-latest
     steps:
+      - name: Run information
+        run: |
+          echo skip_slow=${{ env.skip_slow }}
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
@@ -114,7 +113,7 @@ jobs:
           chmod +x ./tldr-bash
           echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
-        if: ${{ env.skip_slow != 1 }}
+        if: ${{ env.skip_slow == 'false' }}
         run: |
           npm install -g tldr
           ln -s $(realpath $(which tldr)) ./tldr-node-client
