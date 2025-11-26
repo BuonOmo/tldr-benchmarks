@@ -84,13 +84,14 @@ jobs:
           benchmarks_tar=()
           benchmarks_update=()
           while IFS=, read env cmd; do
-            mkdir -p ./caches/$cmd
+            cache_path="$PWD/caches/$cmd"
+            mkdir -p $cache_path
             sync && sudo purge
-            timing_s=$({ time bash -c "$env=./caches/$cmd ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
+            timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
             echo "Updating cache for $cmd in $timing_s."
             echo "$cmd,$timing_s" >> update_times.csv
-            benchmarks_tar+=("$env=./caches/$cmd ./$cmd tar")
-            benchmarks_update+=("$env=./caches/$cmd ./$cmd --update")
+            benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
+            benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
           done < command_list.csv
           hyperfine \
             --warmup 10 \
@@ -154,23 +155,24 @@ jobs:
           benchmarks_tar=()
           benchmarks_update=()
           while IFS=, read env cmd; do
-            mkdir -p ./caches/$cmd
-            sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
-            timing_s=$({ time bash -c "$env=./caches/$cmd ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
+            cache_path="$PWD/caches/$cmd"
+            mkdir -p "$cache_path"
+            sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
+            timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
             echo "Updating cache for $cmd in $timing_s."
             echo "$cmd,$timing_s" >> update_times.csv
-            benchmarks_tar+=("$env=./caches/$cmd ./$cmd tar")
-            benchmarks_update+=("$env=./caches/$cmd ./$cmd --update")
+            benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
+            benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
           done < command_list.csv
           hyperfine \
             --show-output \
             --warmup 10 \
-            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches' \
+            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null' \
             --export-json hyperfine_tar.json \
             "${benchmarks_tar[@]}"
           hyperfine \
             --warmup 10 \
-            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches' \
+            --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null' \
             --export-json hyperfine_update.json \
             "${benchmarks_update[@]}"
           mkdir export
@@ -205,7 +207,7 @@ jobs:
           ruby generate_readme.rb \
             mac/hyperfine_tar.json    mac/hyperfine_update.json    mac/update_times.csv \
             ubuntu/hyperfine_tar.json ubuntu/hyperfine_update.json ubuntu/update_times.csv
-      - uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
+      - uses: EndBug/add-and-commit@v9
         with:
           add: README.md
           author_name: Ulysse Buonomo
