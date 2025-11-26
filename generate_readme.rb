@@ -1,5 +1,16 @@
-HYPERFINE_OUTPUT = 'test/fixtures/hyperfine.json'
-UPDATE_TIMES = 'test/fixtures/update_times.csv'
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+#
+# Generates the README.md file based on
+# benchmark results and DATA section at
+# the end of this file.
+#
+# For tests purposes, you can locally
+# run this script using fixtures with:
+#
+# 	ruby generate_readme.rb test/fixtures/{mac,ubuntu}/{hyperfine_tar,hyperfine_update,update_times}.*
+#
+
 INFO = 'information.tsv'
 
 require 'csv'
@@ -11,18 +22,24 @@ def last_commit_time(git_link)
 	@last_commit_times ||= {}
 	return @last_commit_times[git_link] if @last_commit_times[git_link]
 
-	temp_folder = 'tldr-benchmarks-temp'
+	temp_folder = "tldr-benchmarks-temp-#{git_link.hash}"
 
 	commit_time =
 		`
-		git clone --depth=1 --quiet #{git_link} #{temp_folder}
+		git clone --no-checkout --depth=1 --quiet #{git_link} #{temp_folder}
 		cd #{temp_folder}
-		git log -1 --pretty=format:"%ar"
+		git log -1 --pretty=format:"%as"
 		cd ..
 		rm -rf #{temp_folder}
 		`.chomp
 
 	@last_commit_times[git_link] = commit_time
+end
+
+class Array
+	def fork_map(&block)
+		map { |*a, **kw| Thread.fork { block.call(*a, **kw) } }.map(&:value)
+	end
 end
 
 def generate_table(hyperfine_output_path, hyperfine_update_path, update_times_path, information_path, stream = $stdout, extra_rows = [])
@@ -33,7 +50,7 @@ def generate_table(hyperfine_output_path, hyperfine_update_path, update_times_pa
 
 	headers = ["Client","Language", "Time to show `tar` page (mean ± σ)", "Time to Generate Cache", "Time to check for cache update (mean ± σ)", "Last Commit", *extra_rows.map(&:first)]
 
-	rows = results.map do |result|
+	rows = results.sort_by { _1['mean'] }.fork_map do |result|
 		command = result['command'][%r( \./(.*) tar), 1]
 		update = results_update.find { _1['command'][command] }
 		info_row = info[command]
@@ -50,7 +67,6 @@ def generate_table(hyperfine_output_path, hyperfine_update_path, update_times_pa
 		]
 	end
 
-	rows.sort_by! { |row| row[2] }
 	col_widths = headers.zip(*rows).map { |cols| cols.map { _1.to_s.length }.max }
 
 	stream.puts "| #{headers.zip(col_widths).map { _1.to_s.ljust(_2, ' ') }.join(' | ')} |"
@@ -61,13 +77,13 @@ def generate_table(hyperfine_output_path, hyperfine_update_path, update_times_pa
 end
 
 io = StringIO.new
-generate_table(*ARGV[0, 3], 'information.tsv', io, [
+generate_table(*ARGV[0, 3], INFO, io, [
 	["Comment", ->(_, _, info, _) { info['comment mac'] }]
 ])
 mac_table = io.string
 
 io = StringIO.new
-generate_table(*ARGV[3, 3], 'information.tsv', io, [
+generate_table(*ARGV[3, 3], INFO, io, [
 	["Comment", ->(_, _, info, _) { info['comment ubuntu'] }]
 ])
 ubuntu_table = io.string
