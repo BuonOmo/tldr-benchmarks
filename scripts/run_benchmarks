@@ -30,7 +30,7 @@ while IFS=, read env cmd; do
 	mkdir -p "$cache_path"
 	bash -c "$CLEAR_CACHE_CMD"
 	timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
-	echo "Updating cache for $cmd in $timing_s."
+	echo "Updated cache for $cmd in $timing_s."
 	echo "$cmd,$timing_s" >>update_times.csv
 	benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
 	benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
