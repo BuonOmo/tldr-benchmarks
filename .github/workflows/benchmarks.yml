@@ -1,12 +1,14 @@
 name: Benchmarks
 
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize]
   push:
     branches:
       - main
   schedule:
     - cron: '12 13 * * 1' # Weekly on Mondays at 13:12 UTC
+  workflow_dispatch:
 
 concurrency:
   group: '${{ github.workflow }}@${{ github.ref }}'
