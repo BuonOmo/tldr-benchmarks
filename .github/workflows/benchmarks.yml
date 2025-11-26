@@ -9,13 +9,19 @@ on:
   schedule:
     - cron: '12 13 * * 1' # Weekly on Mondays at 13:12 UTC
   workflow_dispatch:
+    inputs:
+      skip_slow:
+        type: boolean
+        description: 'Skip slow benchmarks or setups (tldr-node-client, fast-tldr, outfieldr)'
+        required: false
+        default: false
+
+env:
+  skip_slow: ${{ !inputs.skip_slow && 0 || github.ref == 'refs/heads/main' && 0 || 1 }}
 
 concurrency:
   group: '${{ github.workflow }}@${{ github.ref }}'
   cancel-in-progress: true
-
-env:
-  skip_slow: 1
 
 jobs:
   mac_bench:
