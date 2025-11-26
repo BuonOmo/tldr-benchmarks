@@ -1,1 +1,0 @@
-ruby generate_readme.rb test/fixtures/{mac,ubuntu}/{hyperfine_tar,hyperfine_update,update_times}.*

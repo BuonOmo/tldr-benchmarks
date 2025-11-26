@@ -6,9 +6,8 @@
 # the end of this file.
 #
 # For tests purposes, you can locally
-# run this script using fixtures with:
-#
-# 	ruby generate_readme.rb test/fixtures/{mac,ubuntu}/{hyperfine_tar,hyperfine_update,update_times}.*
+# run this script using fixtures with
+# the `test_generation` script.
 #
 
 INFO = 'information.tsv'

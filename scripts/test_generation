@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -e
+
+die() {
+	>&2 echo "$1"
+	exit 1
+}
+
+fixture_dir="tmp/fixtures"
+
+rm -rf $fixture_dir
+mkdir -p $fixture_dir
+
+latest_run_on_main=$(
+	gh run list --branch main --status success --limit 1 --json databaseId | jq '.[0].databaseId'
+)
+
+[ -z "$latest_run_on_main" ] && die "Could not find latest successful run on main branch"
+
+gh run download "$latest_run_on_main" --dir $fixture_dir --name mac_bench_results --name ubuntu_bench_results
+
+ruby generate_readme.rb test/fixtures/{mac,ubuntu}_bench_results/{hyperfine_tar,hyperfine_update,update_times}.*
