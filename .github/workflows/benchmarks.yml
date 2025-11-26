@@ -39,11 +39,6 @@ jobs:
           curl --silent --output ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
           echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
-      - name: Install `tldr-c-client` (https://github.com/tldr-pages/tldr-c-client)
-        run: |
-          brew install --skip-link --no-binaries --force --quiet tldr
-          ln -s $(brew --prefix)/Cellar/tldr/*/bin/tldr ./tldr-c-client
-          echo "TLDR_CACHE_DIR,tldr-c-client" >> command_list.csv
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow != 1 }}
         run: |
