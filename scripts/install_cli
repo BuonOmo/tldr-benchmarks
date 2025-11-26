@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#
 # Install a tldr CLI and measure its installation time.
 #
 # Arguments:
@@ -16,11 +17,15 @@ shift 3 || {
 	exit 1
 }
 
-timing_s=$({ time bash -c "$INSTALL_SCRIPT"; } 2>&1 | awk '/real/ {print $2}')
+t0=$(date +%s)
 
-echo "Installed $CLI_NAME in $timing_s."
+bash "$INSTALL_SCRIPT"
 
-which tldr >/dev/null || {
+t1=$(date +%s)
+
+echo "Installed $CLI_NAME in $((t1 - t0)) seconds."
+
+which tldr >/dev/null && {
 	>&2 echo "$0: \`tldr\` should be removed from path after installation"
 	exit 1
 }
