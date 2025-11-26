@@ -79,7 +79,8 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           echo "Commands to benchmark:"
-          cat command_list.csv
+          echo
+          column -ts , < command_list.csv
           echo
           benchmarks_tar=()
           benchmarks_update=()
@@ -150,7 +151,8 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           echo "Commands to benchmark:"
-          cat command_list.csv
+          echo
+          column -ts , < command_list.csv
           echo
           benchmarks_tar=()
           benchmarks_update=()
@@ -165,7 +167,6 @@ jobs:
             benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
           done < command_list.csv
           hyperfine \
-            --show-output \
             --warmup 10 \
             --prepare 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null' \
             --export-json hyperfine_tar.json \
@@ -208,6 +209,7 @@ jobs:
             mac/hyperfine_tar.json    mac/hyperfine_update.json    mac/update_times.csv \
             ubuntu/hyperfine_tar.json ubuntu/hyperfine_update.json ubuntu/update_times.csv
       - uses: EndBug/add-and-commit@v9
+        if: github.event_name != 'pull_request'
         with:
           add: README.md
           author_name: Ulysse Buonomo
@@ -215,3 +217,11 @@ jobs:
           committer_name: GitHub Actions
           committer_email: actions@github.com
           message: 'auto: update benchmarks'
+      - name: Print README and diff to Github Summary
+        if: github.event_name == 'pull_request'
+        run: |
+          cat README.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo '```diff' >> $GITHUB_STEP_SUMMARY
+          git --no-pager diff >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
