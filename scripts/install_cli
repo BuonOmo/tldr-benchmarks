@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Install a tldr CLI and measure its installation time.
+#
+# Arguments:
+#
+# - $1 => Environment variable to set for cache path.
+# - $2 => Name of the CLI being installed.
+# - $3 => Installation script to run.
+
+CACHE_ENV_VAR="$1"
+CLI_NAME="$2"
+INSTALL_SCRIPT="$3"
+
+shift 3 || {
+	>&2 echo "Usage: $0 <cache_environment_variable> <cli_name> <install_script>"
+	exit 1
+}
+
+t0=$(date +%s)
+
+bash "$INSTALL_SCRIPT"
+
+t1=$(date +%s)
+
+echo "Installed $CLI_NAME in $((t1 - t0)) seconds."
+
+which tldr >/dev/null && {
+	>&2 echo "$0: \`tldr\` should be removed from path after installation"
+	exit 1
+}
+
+echo "$CACHE_ENV_VAR,$CLI_NAME" >>command_list.csv

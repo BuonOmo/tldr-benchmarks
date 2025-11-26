@@ -23,41 +23,43 @@ jobs:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
-      - name: Run information
-        run: |
-          echo skip_slow=${{ env.skip_slow }}
       - uses: actions/checkout@v4
+      - name: Run setup and info
+        run: |
+          echo "$PWD/scripts" >> "$GITHUB_PATH"
+          echo skip_slow=${{ env.skip_slow }}
       - name: Install dependencies
         run: brew update --quiet && brew install --quiet hyperfine
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
+        shell: install_cli TEALDEER_CACHE_DIR tealdeer {0}
         run: |
           brew install --skip-link --no-binaries --force --quiet tealdeer
           ln -s $(brew --prefix)/Cellar/tealdeer/*/bin/tldr ./tealdeer
-          echo "TEALDEER_CACHE_DIR,tealdeer" >> command_list.csv
       - name: Install `tlrc` (https://github.com/tldr-pages/tlrc)
+        shell: install_cli TLDR_CACHE_DIR tlrc {0}
         run: |
           brew install --skip-link --no-binaries --force --quiet tlrc
           ln -s $(brew --prefix)/Cellar/tlrc/*/bin/tldr ./tlrc
-          echo "TLDR_CACHE_DIR,tlrc" >> command_list.csv
       - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
+        shell: install_cli XDG_DATA_HOME tldr-bash {0}
         run: |
           curl --silent --output ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
-          echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow == 'false' }}
+        shell: install_cli HOME tldr-node-client {0}
         run: |
           npm install -g tldr
           ln -s $(realpath $(which tldr)) ./tldr-node-client
           rm -f $(which tldr)
-          echo "HOME,tldr-node-client" >> command_list.csv
       - name: Install `tldr-python-client` (https://github.com/tldr-pages/tldr-python-client)
+        shell: install_cli HOME tldr-python-client {0}
         run: |
           pip install tldr
           mv $(which tldr) ./tldr-python-client
-          echo "HOME,tldr-python-client" >> command_list.csv
       - name: Install `fast-tldr` (https://github.com/gutjuri/fast-tldr)
         if: ${{ env.skip_slow == 'false' }}
+        shell: install_cli XDG_DATA_HOME fast-tldr {0}
         run: |
           curl -sSL https://get.haskellstack.org/ | sh
           git clone --quiet --depth 1 https://github.com/gutjuri/fast-tldr.git fast-tldr-repo
@@ -65,9 +67,9 @@ jobs:
           stack install --local-bin-path . > /dev/null
           mv tldr ../fast-tldr
           cd ..
-          echo "XDG_DATA_HOME,fast-tldr" >> command_list.csv
       - name: Install `outfieldr` (https://gitlab.com/ve-nt/outfieldr)
         if: false # outfieldr depends on zig 0.9.1 which is broken on Mac M* chips.
+        shell: install_cli HOME outfieldr {0}
         run: |
           git clone --quiet --depth 1 https://gitlab.com/ve-nt/outfieldr outfieldr-repo
           cd outfieldr-repo
@@ -77,10 +79,9 @@ jobs:
           ./zig-macos-aarch64-0.9.1/zig build -Drelease-safe
           cd ..
           cp outfieldr-repo/bin/tldr ./outfieldr
-          echo "HOME,outfieldr" >> command_list.csv
       - name: Update caches and run benchmark
         if: ${{ !cancelled() }}
-        run: ./scripts/run_benchmarks 'sync && sudo purge'
+        run: run_benchmarks 'sync && sudo purge'
       - name: Upload test information
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -90,43 +91,44 @@ jobs:
   ubuntu_bench:
     runs-on: ubuntu-latest
     steps:
-      - name: Run information
-        run: |
-          echo skip_slow=${{ env.skip_slow }}
       - uses: actions/checkout@v4
+      - name: Run setup and info
+        run: |
+          echo "$PWD/scripts" >> "$GITHUB_PATH"
+          echo skip_slow=${{ env.skip_slow }}
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
       - name: Install `tldr-hs` (https://github.com/psibi/tldr-hs)
+        shell: install_cli XDG_DATA_HOME tldr-hs {0}
         run: |
           sudo apt-get install -yqq tldr-hs
           ln -s $(realpath $(which tldr)) ./tldr-hs
           sudo rm -f $(which tldr)
-          echo "XDG_DATA_HOME,tldr-hs" >> command_list.csv
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
+        shell: install_cli TEALDEER_CACHE_DIR tealdeer {0}
         run: |
           sudo apt-get install -yqq tealdeer
           sudo mv $(which tldr) ./tealdeer
-          echo "TEALDEER_CACHE_DIR,tealdeer" >> command_list.csv
       - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
+        shell: install_cli XDG_DATA_HOME tldr-bash {0}
         run: |
           curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
-          echo "XDG_DATA_HOME,tldr-bash" >> command_list.csv
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow == 'false' }}
+        shell: install_cli HOME tldr-node-client {0}
         run: |
           npm install -g tldr
           ln -s $(realpath $(which tldr)) ./tldr-node-client
           sudo rm -f $(which tldr)
-          echo "HOME,tldr-node-client" >> command_list.csv
       - name: Install `tldr-python-client` (https://github.com/tldr-pages/tldr-python-client)
+        shell: install_cli HOME tldr-python-client {0}
         run: |
           sudo pip install tldr
           sudo mv $(which tldr) ./tldr-python-client
-          echo "HOME,tldr-python-client" >> command_list.csv
       - name: Update caches and run benchmark
         if: ${{ !cancelled() }}
-        run: ./scripts/run_benchmarks 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
+        run: run_benchmarks 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
       - name: Upload test information
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
