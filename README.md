@@ -16,21 +16,21 @@ time and project maintenance.
 
 | Client                                                                 | Language   | Time to show `tar` page (mean ± σ) | Time to Generate Cache | Time to check for cache update (mean ± σ) | Last Commit | Comment      |
 | ---------------------------------------------------------------------- | ---------- | ---------------------------------- | ---------------------- | ----------------------------------------- | ----------- | ------------ |
-| [fast-tldr](https://github.com/gutjuri/fast-tldr)                      | Haskell    | 143.1 ms ± 36.4                    | 00:10.70               | 11391.9 ms ± 1065.1                       | 2024-01-24  | not packaged |
-| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 254.2 ms ± 64.8                    | 00:03.962              | 2716.7 ms ± 430.9                         | 2025-11-11  | on brew      |
-| [tlrc](https://github.com/tldr-pages/tlrc)                             | Rust       | 282.1 ms ± 45.0                    | 00:03.377              | 1236.8 ms ± 127.9                         | 2025-11-13  | on brew      |
-| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 312.5 ms ± 56.0                    | 00:12.704              | 1389.1 ms ± 156.5                         | 2018-09-24  | single file  |
-| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 450.6 ms ± 105.5                   | 00:02.597              | 2430.5 ms ± 406.6                         | 2025-11-25  | needs pip    |
-| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 891.9 ms ± 309.9                   | 04:07.512              | 195687.1 ms ± 13019.4                     | 2025-11-26  | needs npm    |
+| [fast-tldr](https://github.com/gutjuri/fast-tldr)                      | Haskell    | 171.4 ms ± 62.6                    | 00:09.348              | 11066.3 ms ± 1421.8                       | 2024-01-24  | not packaged |
+| [tlrc](https://github.com/tldr-pages/tlrc)                             | Rust       | 183.8 ms ± 43.1                    | 00:02.394              | 631.7 ms ± 59.2                           | 2025-11-13  | on brew      |
+| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 273.8 ms ± 102.5                   | 00:04.178              | 2915.7 ms ± 287.5                         | 2025-11-11  | on brew      |
+| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 451.8 ms ± 144.3                   | 00:03.687              | 1473.7 ms ± 75.3                          | 2025-11-25  | needs pip    |
+| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 478.4 ms ± 74.5                    | 00:08.49               | 925.2 ms ± 137.7                          | 2018-09-24  | single file  |
+| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 1482.7 ms ± 380.7                  | 02:53.164              | 174148.4 ms ± 13713.2                     | 2025-11-29  | needs npm    |
 
 
 ## For Ubuntu
 
 | Client                                                                 | Language   | Time to show `tar` page (mean ± σ) | Time to Generate Cache | Time to check for cache update (mean ± σ) | Last Commit | Comment     |
 | ---------------------------------------------------------------------- | ---------- | ---------------------------------- | ---------------------- | ----------------------------------------- | ----------- | ----------- |
-| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 23.3 ms ± 1.3                      | 00:01.641              | 2289.0 ms ± 7.3                           | 2025-11-11  | on apt      |
-| [tldr-hs](https://github.com/psibi/tldr-hs)                            | Haskell    | 61.7 ms ± 5.4                      | 00:04.599              | 6018.3 ms ± 150.3                         | 2022-07-22  | on apt      |
-| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 88.2 ms ± 1.7                      | 00:02.12               | 694.5 ms ± 20.1                           | 2018-09-24  | single file |
-| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 152.2 ms ± 2.2                     | 00:01.308              | 1471.2 ms ± 45.1                          | 2025-11-25  | needs pip   |
-| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 763.5 ms ± 13.8                    | 03:29.509              | 210673.9 ms ± 1092.7                      | 2025-11-26  | needs npm   |
+| [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 23.4 ms ± 0.6                      | 00:01.647              | 2363.8 ms ± 32.7                          | 2025-11-11  | on apt      |
+| [tldr-hs](https://github.com/psibi/tldr-hs)                            | Haskell    | 63.3 ms ± 3.8                      | 00:04.768              | 6024.2 ms ± 194.3                         | 2022-07-22  | on apt      |
+| [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 89.6 ms ± 2.3                      | 00:02.273              | 754.5 ms ± 25.2                           | 2018-09-24  | single file |
+| [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 151.3 ms ± 2.8                     | 00:01.477              | 1661.9 ms ± 59.8                          | 2025-11-25  | needs pip   |
+| [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 771.7 ms ± 5.8                     | 03:33.75               | 218778.2 ms ± 2691.9                      | 2025-11-29  | needs npm   |
 
