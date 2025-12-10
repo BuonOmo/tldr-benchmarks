@@ -98,12 +98,6 @@ jobs:
           echo skip_slow=${{ env.skip_slow }}
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
-      - name: Install `tldr-hs` (https://github.com/psibi/tldr-hs)
-        shell: install_cli XDG_DATA_HOME tldr-hs {0}
-        run: |
-          sudo apt-get install -yqq tldr-hs
-          ln -s $(realpath $(which tldr)) ./tldr-hs
-          sudo rm -f $(which tldr)
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
         shell: install_cli TEALDEER_CACHE_DIR tealdeer {0}
         run: |

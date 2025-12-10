@@ -29,8 +29,6 @@ time and project maintenance.
 | Client                                                                 | Language   | Time to show `tar` page (mean ± σ) | Time to Generate Cache | Time to check for cache update (mean ± σ) | Last Commit | Comment     |
 | ---------------------------------------------------------------------- | ---------- | ---------------------------------- | ---------------------- | ----------------------------------------- | ----------- | ----------- |
 | [tealdeer](https://github.com/tealdeer-rs/tealdeer)                    | Rust       | 17.2 ms ± 1.0                      | 00:01.640              | 2286.6 ms ± 12.3                          | 2025-12-01  | on apt      |
-| [tldr-hs](https://github.com/psibi/tldr-hs)                            | Haskell    | 47.1 ms ± 6.1                      | 00:04.307              | 5674.1 ms ± 118.8                         | 2022-07-22  | on apt      |
 | [tldr-bash](https://github.com/ewels/tldr-bash)                        | BASH       | 81.4 ms ± 2.9                      | 00:02.78               | 688.6 ms ± 21.0                           | 2018-09-24  | single file |
 | [tldr-python-client](https://github.com/tldr-pages/tldr-python-client) | Python     | 128.6 ms ± 2.0                     | 00:01.382              | 1409.2 ms ± 72.8                          | 2025-12-07  | needs pip   |
 | [tldr-node-client](https://github.com/tldr-pages/tldr-node-client)     | JavaScript | 698.1 ms ± 12.0                    | 03:35.948              | 213400.3 ms ± 2424.1                      | 2025-12-08  | needs npm   |
-

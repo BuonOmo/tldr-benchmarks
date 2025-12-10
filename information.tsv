@@ -7,4 +7,3 @@ tldr-node-client	JavaScript	needs npm	needs npm	https://github.com/tldr-pages/tl
 tldr-python-client	Python	needs pip	needs pip	https://github.com/tldr-pages/tldr-python-client
 fast-tldr	Haskell	not packaged		https://github.com/gutjuri/fast-tldr
 outfieldr	Zig	not packaged		https://gitlab.com/ve-nt/outfieldr
-tldr-hs	Haskell		on apt	https://github.com/psibi/tldr-hs
