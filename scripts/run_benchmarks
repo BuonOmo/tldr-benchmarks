@@ -12,6 +12,8 @@
 #
 #  - $1 => Command to clear OS file system caches.
 
+set -e
+
 CLEAR_CACHE_CMD="$1"
 
 shift || {
@@ -37,11 +39,13 @@ while IFS=, read env cmd; do
 done <command_list.csv
 hyperfine \
 	--warmup 10 \
+	--show-output \
 	--prepare "$CLEAR_CACHE_CMD" \
 	--export-json hyperfine_tar.json \
 	"${benchmarks_tar[@]}"
 hyperfine \
 	--warmup 10 \
+	--show-output \
 	--prepare "$CLEAR_CACHE_CMD" \
 	--export-json hyperfine_update.json \
 	"${benchmarks_update[@]}"

@@ -99,8 +99,21 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
-        shell: install_cli TEALDEER_CACHE_DIR tealdeer {0}
+        shell: install_cli TEALDEER_CONFIG_DIR tealdeer {0}
         run: |
+          # HACK: Recent tealdeer versions ony allow an ENV
+          # variable for config dir. So we mix config dir and
+          # cache dir to make sure we can still control it
+          # with an ENV variable and not refactor the whole
+          # process. Note that this creates strong coupling
+          # with the run_benchmarks script (the cache path
+          # being hardcoded here, and there).
+          mkdir -p $PWD/caches/tealdeer
+          CAT <<TOML > $PWD/caches/tealdeer/config.toml
+          [directories]
+          cache_dir = "$PWD/caches/tealdeer/"
+          TOML
+
           sudo apt-get install -yqq tealdeer
           sudo mv $(which tldr) ./tealdeer
       - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
