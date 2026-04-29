@@ -12,7 +12,7 @@
 #
 #  - $1 => Command to clear OS file system caches.
 
-set -e
+set -ex
 
 CLEAR_CACHE_CMD="$1"
 
@@ -27,10 +27,26 @@ column -ts , <command_list.csv
 echo
 benchmarks_tar=()
 benchmarks_update=()
-while IFS=, read env cmd; do
+while IFS=, read setup cmd; do
 	cache_path="$PWD/caches/$cmd"
 	mkdir -p "$cache_path"
 	bash -c "$CLEAR_CACHE_CMD"
+	case $setup in
+	# tealdir only allows overriding the config file in env.
+	"tealdeer")
+		mkdir -p "$cache_path/true_cache/"
+		cat <<-TOML >$cache_path/config.toml
+			[directories]
+			cache_dir = "$cache_path/true_cache/"
+		TOML
+		# DEBUG:
+		cat $cache_path/config.toml
+		env="TEALDEER_CONFIG_DIR"
+		;;
+	*) env=setup ;;
+	esac
+	# DEBUG:
+	bash -c "$env=\"$cache_path\" ./$cmd --update"
 	timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
 	echo "Updated cache for $cmd in $timing_s."
 	echo "$cmd,$timing_s" >>update_times.csv
