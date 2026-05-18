@@ -101,12 +101,14 @@ jobs:
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
         shell: install_cli XDG_DATA_HOME tealdeer {0}
         run: |
-          sudo apt-get install -yqq tealdeer
-          sudo mv $(which tldr) ./tealdeer
+          # sudo apt-get install -yqq tealdeer
+          # sudo mv $(which tldr) ./tealdeer
+          curl --location --silent -o ./tealdeer https://github.com/tealdeer-rs/tealdeer/releases/download/v1.8.1/tealdeer-linux-x86_64-musl
+          chmod +x ./tealdeer
       - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
         shell: install_cli XDG_DATA_HOME tldr-bash {0}
         run: |
-          curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
+          curl --location --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow == 'false' }}
