@@ -12,6 +12,9 @@ on:
 env:
   skip_slow: ${{ github.ref != 'refs/heads/main' }}
 
+permissions:
+  contents: read
+
 concurrency:
   group: '${{ github.workflow }}@${{ github.ref }}'
   cancel-in-progress: true
@@ -23,7 +26,7 @@ jobs:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run setup and info
         run: |
           echo "$PWD/scripts" >> "$GITHUB_PATH"
@@ -83,7 +86,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: run_benchmarks 'sync && sudo purge'
       - name: Upload test information
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: mac_bench_results
@@ -91,7 +94,7 @@ jobs:
   ubuntu_bench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run setup and info
         run: |
           echo "$PWD/scripts" >> "$GITHUB_PATH"
@@ -128,7 +131,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: run_benchmarks 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
       - name: Upload test information
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: ubuntu_bench_results
@@ -139,14 +142,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download test information
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mac_bench_results
           path: mac
       - name: Download test information
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ubuntu_bench_results
           path: ubuntu
