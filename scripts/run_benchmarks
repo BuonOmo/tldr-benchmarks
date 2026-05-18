@@ -32,8 +32,11 @@ while IFS=, read env cmd; do
 	mkdir -p "$cache_path"
 	bash -c "$CLEAR_CACHE_CMD"
 	# NOTE: this next command might silently fail due to intrication of
-	# `bash -c`, `time` and piping to `awk`.
-	timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
+	# `bash -c`, `time` and piping to `awk`. Failure will happen afterwards
+	# during benchmarks anyway.
+	timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 |
+		tee /dev/tty |
+		awk '/real/ {print $2}')
 	echo "Updated cache for $cmd in $timing_s."
 	echo "$cmd,$timing_s" >>update_times.csv
 	benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
