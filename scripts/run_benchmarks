@@ -27,39 +27,24 @@ column -ts , <command_list.csv
 echo
 benchmarks_tar=()
 benchmarks_update=()
-while IFS=, read setup cmd; do
+while IFS=, read env cmd; do
 	cache_path="$PWD/caches/$cmd"
 	mkdir -p "$cache_path"
 	bash -c "$CLEAR_CACHE_CMD"
-	case $setup in
-	# tealdeer only allows overriding the config file in env.
-	"tealdeer")
-		mkdir -p "$cache_path/true_cache/"
-		cat <<-TOML >$cache_path/config.toml
-			[directories]
-			cache_dir = "$cache_path/true_cache/"
-		TOML
-		env="TEALDEER_CONFIG_DIR"
-		;;
-	*) env=setup ;;
-	esac
 	# NOTE: this next command might silently fail due to intrication of
 	# `bash -c`, `time` and piping to `awk`.
 	timing_s=$({ time bash -c "$env=\"$cache_path\" ./$cmd --update"; } 2>&1 | awk '/real/ {print $2}')
-	./$cmd --update
 	echo "Updated cache for $cmd in $timing_s."
 	echo "$cmd,$timing_s" >>update_times.csv
 	benchmarks_tar+=("$env=\"$cache_path\" ./$cmd tar")
 	benchmarks_update+=("$env=\"$cache_path\" ./$cmd --update")
 done <command_list.csv
 hyperfine \
-	--show-output \
 	--warmup 10 \
 	--prepare "$CLEAR_CACHE_CMD" \
 	--export-json hyperfine_tar.json \
 	"${benchmarks_tar[@]}"
 hyperfine \
-	--show-output \
 	--warmup 10 \
 	--prepare "$CLEAR_CACHE_CMD" \
 	--export-json hyperfine_update.json \

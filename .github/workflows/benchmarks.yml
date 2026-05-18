@@ -101,6 +101,8 @@ jobs:
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
         shell: install_cli XDG_DATA_HOME tealdeer {0}
         run: |
+          # TODO: when ubuntu 26.04 is available in Github Actions, switch
+          #   to that instead of downloading the binary directly.
           # sudo apt-get install -yqq tealdeer
           # sudo mv $(which tldr) ./tealdeer
           curl --location --silent -o ./tealdeer https://github.com/tealdeer-rs/tealdeer/releases/download/v1.8.1/tealdeer-linux-x86_64-musl
