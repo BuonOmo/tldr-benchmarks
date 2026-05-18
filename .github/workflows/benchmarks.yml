@@ -12,6 +12,9 @@ on:
 env:
   skip_slow: ${{ github.ref != 'refs/heads/main' }}
 
+permissions:
+  contents: read
+
 concurrency:
   group: '${{ github.workflow }}@${{ github.ref }}'
   cancel-in-progress: true
@@ -23,7 +26,7 @@ jobs:
       HOMEBREW_NO_AUTOREMOVE: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run setup and info
         run: |
           echo "$PWD/scripts" >> "$GITHUB_PATH"
@@ -83,7 +86,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: run_benchmarks 'sync && sudo purge'
       - name: Upload test information
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: mac_bench_results
@@ -91,7 +94,7 @@ jobs:
   ubuntu_bench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run setup and info
         run: |
           echo "$PWD/scripts" >> "$GITHUB_PATH"
@@ -99,14 +102,18 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get -qq update && sudo apt-get install -yqq hyperfine
       - name: Install `tealdeer` (https://github.com/tealdeer-rs/tealdeer)
-        shell: install_cli TEALDEER_CACHE_DIR tealdeer {0}
+        shell: install_cli XDG_DATA_HOME tealdeer {0}
         run: |
-          sudo apt-get install -yqq tealdeer
-          sudo mv $(which tldr) ./tealdeer
+          # TODO: when ubuntu 26.04 is available in Github Actions, switch
+          #   to that instead of downloading the binary directly.
+          # sudo apt-get install -yqq tealdeer
+          # sudo mv $(which tldr) ./tealdeer
+          curl --location --silent -o ./tealdeer https://github.com/tealdeer-rs/tealdeer/releases/download/v1.8.1/tealdeer-linux-x86_64-musl
+          chmod +x ./tealdeer
       - name: Install `tldr-bash` (https://github.com/ewels/tldr-bash)
         shell: install_cli XDG_DATA_HOME tldr-bash {0}
         run: |
-          curl --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
+          curl --location --silent -o ./tldr-bash https://raw.githubusercontent.com/raylee/tldr/master/tldr
           chmod +x ./tldr-bash
       - name: Install `tldr-node-client` (https://github.com/tldr-pages/tldr-node-client)
         if: ${{ env.skip_slow == 'false' }}
@@ -124,7 +131,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: run_benchmarks 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
       - name: Upload test information
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: ubuntu_bench_results
@@ -135,14 +142,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download test information
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mac_bench_results
           path: mac
       - name: Download test information
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ubuntu_bench_results
           path: ubuntu
